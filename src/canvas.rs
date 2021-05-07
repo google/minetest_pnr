@@ -197,7 +197,7 @@ impl Canvas {
             panic!("Sorry, circuit too large for minetest (MTS format limitation)");
         }
         if x >= CANVAS_MAX_W || y >= CANVAS_MAX_H {
-            panic!("Sorry, circuit too large for the internal canvas, consider increasing CANVAS_MAX_{{W/H}}");
+            panic!("{}", "Sorry, circuit too large for the internal canvas, consider increasing CANVAS_MAX_{W/H}");
         }
         if x > self.width {
             self.width = x;
@@ -213,7 +213,7 @@ impl Canvas {
             panic!("Sorry, circuit too large for minetest (MTS format limitation)");
         }
         if x >= CANVAS_MAX_W || y >= CANVAS_MAX_H {
-            panic!("Sorry, circuit too large for the internal canvas, consider increasing CANVAS_MAX_{{W/H}}");
+            panic!("{}", "Sorry, circuit too large for the internal canvas, consider increasing CANVAS_MAX_{W/H}");
         }
         self.data[x][y]
     }
