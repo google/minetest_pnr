@@ -29,10 +29,8 @@ macro_rules! TrivialGate {
                     &[
                         WireCorner(CornerOrientation::LeftDown),
                         Air,
-
                         Gate($basic_gate),
                         Gate(MeseconsGate::Not),
-
                         WireCorner(CornerOrientation::LeftUp),
                         Air,
                     ]
@@ -151,10 +149,8 @@ macro_rules! SthNotGate {
                 &[
                     WireH,
                     WireCorner(CornerOrientation::LeftDown),
-
                     Air,
                     Gate($basic_gate),
-
                     Gate(MeseconsGate::Not),
                     WireCorner(CornerOrientation::LeftUp),
                 ]

@@ -84,7 +84,13 @@ pub fn place_gates(channel_layout: &ChannelLayout, circuits: &mut Vec<Circuit>) 
             .position(|window| window == &*space_pattern)
             // TODO: This adds it at the end, there should be more
             //       efficient things to do.
-            .unwrap_or_else(|| desired_channel_layout.len());
+            .unwrap_or_else(|| {
+                let mut n = desired_channel_layout.len();
+                while n > 0 && desired_channel_layout[n - 1] == ChannelState::Free {
+                    n -= 1;
+                }
+                n
+            });
 
         circuit.place(Position2D(100_000, free_pos as u32));
 

@@ -256,7 +256,10 @@ fn main() -> std::io::Result<()> {
         // Get the current input layout (left side of the channel).
         let channel_layout =
             determine_channel_layout(gate_hierarchy[gategroup_idx].iter(), IOType::Output);
-        let n_inputs = channel_layout.iter().filter(|x| matches!(**x, ChannelState::Net(_))).count();
+        let n_inputs = channel_layout
+            .iter()
+            .filter(|x| matches!(**x, ChannelState::Net(_)))
+            .count();
         println!(
             " [+] Step {}/{} - {} inputs to {} gates",
             gategroup_idx + 1,
