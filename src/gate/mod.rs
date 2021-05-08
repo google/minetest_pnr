@@ -15,10 +15,13 @@ use crate::BlockType;
 use std::convert::TryFrom;
 
 mod basic;
+mod dff;
 mod mesecons;
 
 pub use basic::*;
 pub use mesecons::MeseconsGate;
+
+use dff::DffP;
 
 #[derive(Debug, Copy, Clone)]
 pub enum BasicCircuitYada {
@@ -35,6 +38,8 @@ pub enum BasicCircuitYada {
     InputGate(InputGate),
     OutputGate(OutputGate),
     ForwardGate(ForwardGate),
+
+    DffP(DffP),
 }
 
 impl BasicCircuitYada {
@@ -69,6 +74,8 @@ impl BasicCircuitYada {
             BasicCircuitYada::InputGate(ref x) => x,
             BasicCircuitYada::OutputGate(ref x) => x,
             BasicCircuitYada::ForwardGate(ref x) => x,
+
+            BasicCircuitYada::DffP(ref x) => x,
         }
     }
 }
@@ -87,6 +94,7 @@ impl TryFrom<&str> for BasicCircuitYada {
             Self::Not(NotGate),
             Self::Xnor(XnorGate),
             Self::Xor(XorGate),
+            Self::DffP(DffP),
         ];
 
         for gate in gates {
