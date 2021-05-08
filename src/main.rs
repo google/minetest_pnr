@@ -17,6 +17,7 @@
 mod canvas;
 mod channel_router;
 mod circuit;
+mod gate;
 mod loader;
 mod placer;
 
@@ -25,13 +26,14 @@ extern crate rayon;
 use crate::canvas::*;
 use crate::channel_router::*;
 use crate::circuit::*;
+use crate::gate::BasicCircuitDetails;
 use crate::loader::*;
 use crate::placer::place_gates;
 use clap::{App, Arg};
 use core::convert::TryFrom;
 use rayon::prelude::*;
 use std::fs::File;
-use std::io::Read;
+use std::io::Read; //, CircuitTypeT};
 
 fn resolve_gate_dependencies(
     mut circuits: Vec<Circuit>,
@@ -145,11 +147,13 @@ fn parse_json(filepath: &str) -> std::io::Result<Vec<Vec<Circuit>>> {
     output_pins.sort();
 
     // Let's keep the input layout consistent.
-    circuits.sort_by(|a, b| match (a.circuit_type, b.circuit_type) {
-        (CircuitType::INPUT, CircuitType::INPUT) => a.outputs[0].cmp(&b.outputs[0]),
-        (CircuitType::INPUT, _) => std::cmp::Ordering::Less,
-        (_, _) => a.inputs[0].cmp(&b.inputs[0]),
-    });
+    circuits.sort_by(
+        |a, b| match (a.basic_circuit.is_input(), b.basic_circuit.is_input()) {
+            (true, true) => a.outputs[0].cmp(&b.outputs[0]),
+            (true, false) => std::cmp::Ordering::Less,
+            (_, _) => a.inputs[0].cmp(&b.inputs[0]),
+        },
+    );
 
     println!("[*] Calculating gate layout.");
     Ok(resolve_gate_dependencies(circuits, output_pins))
@@ -244,7 +248,7 @@ fn main() -> std::io::Result<()> {
     }
 
     // Go at least a little bit straight before starting the channel router.
-    block_x_start += 2;
+    block_x_start += 1;
 
     // 1) Place
     println!("[*] Placing gates");
@@ -252,11 +256,12 @@ fn main() -> std::io::Result<()> {
         // Get the current input layout (left side of the channel).
         let channel_layout =
             determine_channel_layout(gate_hierarchy[gategroup_idx].iter(), IOType::Output);
+        let n_inputs = channel_layout.iter().filter(|x| matches!(**x, ChannelState::Net(_))).count();
         println!(
             " [+] Step {}/{} - {} inputs to {} gates",
             gategroup_idx + 1,
             gate_hierarchy.len() - 1,
-            channel_layout.len(),
+            n_inputs,
             gate_hierarchy[gategroup_idx + 1].len()
         );
 
@@ -316,32 +321,29 @@ fn main() -> std::io::Result<()> {
             place_constants_here.push((x as usize, pos));
         }
 
-        block_x_start = x + 3;
+        let widest_gate = gate_hierarchy[gategroup_idx + 1]
+            .iter()
+            .map(|x| x.width())
+            .max()
+            .unwrap_or(1);
+        block_x_start = x + widest_gate;
     }
 
     for gate_group in gate_hierarchy.iter() {
+        let widest_gate = gate_group.iter().map(|x| x.width()).max().unwrap_or(1);
         for g in gate_group.iter() {
             let gate_pos = g
                 .position
                 .unwrap_or_else(|| panic!("Circuit {:#?} was not placed!", g));
-            canvas.set(
-                gate_pos.0 as usize,
-                gate_pos.1 as usize,
-                BlockType::Gate(g.circuit_type),
-            );
-            for i in &g.inputs {
-                let input_pos = i.position.expect("Input was not placed");
-                canvas.set(input_pos.0 as usize, input_pos.1 as usize, BlockType::Input);
-            }
-            for o in &g.outputs {
-                let output_pos = o.position.expect("Output was not placed");
+            g.draw(&mut canvas);
+            for dx in g.width()..widest_gate {
+                let p = gate_pos;
                 canvas.set(
-                    output_pos.0 as usize,
-                    output_pos.1 as usize,
-                    BlockType::Output,
+                    p.0 as usize + dx as usize,
+                    p.1 as usize + g.basic_circuit.output_y_offset(0),
+                    BlockType::WireH,
                 );
             }
-            g.draw(&mut canvas);
         }
     }
 

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use bitmap;
 use std::cmp;
 use std::collections::HashMap;
 
@@ -61,17 +60,11 @@ impl ChannelState {
     }
 
     pub fn contains_net(&self) -> bool {
-        match self {
-            ChannelState::Net(_) => true,
-            _ => false,
-        }
+        matches!(self, ChannelState::Net(_))
     }
 
     pub fn is_constant_on(&self) -> bool {
-        match self {
-            ChannelState::Constant => true,
-            _ => false,
-        }
+        matches!(self, ChannelState::Constant)
     }
 }
 
@@ -201,7 +194,7 @@ pub fn route_channel(start: &ChannelLayout, end: &ChannelLayout) -> Vec<ChannelS
 
     let mut tasks = tasks.into_tasks(&state);
     // Order by how much of the channel this task occupies.
-    tasks.sort_by(|a, b| a.channel_width_required().cmp(&b.channel_width_required()));
+    tasks.sort_by_key(|k| k.channel_width_required());
 
     let mut steps: Vec<ChannelSubState> = Vec::new();
 

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::channel_router::{ChannelOp, ChannelSubState, WireConnection};
-use crate::CircuitType;
+use crate::gate::MeseconsGate;
 use byteorder::{BigEndian, WriteBytesExt};
 use deflate::write::ZlibEncoder;
 use deflate::Compression;
@@ -80,10 +80,8 @@ pub enum BlockType {
     WireT(TRotation),
     WireCorner(CornerOrientation),
     WireStar,
-    Gate(CircuitType),
+    Gate(MeseconsGate),
 
-    Input,
-    Output,
     Constant,
 }
 
@@ -111,15 +109,13 @@ impl BlockType {
             WireT(TRotation::LeftUpDown) => '┤',
             WireStar => '┼',
 
-            Gate(CircuitType::INPUT) => '░',
-            Gate(CircuitType::FORWARD) => '»',
-            Gate(CircuitType::NOT) => '¬',
-            Gate(CircuitType::OR) => 'v',
-            Gate(CircuitType::AND) => '^',
+            Gate(MeseconsGate::Input) => '░',
+            Gate(MeseconsGate::Forward) => '»',
+            Gate(MeseconsGate::Not) => '¬',
+            Gate(MeseconsGate::Or) => 'v',
+            Gate(MeseconsGate::And) => '^',
             Gate(_) => '▓',
 
-            Input => '─',
-            Output => '─',
             Constant => 'o',
         }
     }
@@ -136,8 +132,6 @@ impl BlockType {
             WireStar => "mesecons:mesecon_off",
             Gate(gate) => gate.mesecon_id(),
 
-            Input => "mesecons_insulated:insulated_off",
-            Output => "mesecons_insulated:insulated_off",
             Constant => "mesecons_torch:mesecon_torch_off",
         }
     }
@@ -155,12 +149,8 @@ impl BlockType {
             WireT(TRotation::RightUpDown) => 2,
             WireT(TRotation::LeftRightDown) => 3,
 
-            // gate 'input / output' pseudo types (are actually wires)
-            Input => 3,
-            Output => 3,
-
-            Gate(CircuitType::OUTPUT) => 0,
-            Gate(CircuitType::INPUT) => 0,
+            Gate(MeseconsGate::Output) => 0,
+            Gate(MeseconsGate::Input) => 0,
             Gate(_) => 3,
 
             // Can be rotated in any way.
