@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate itertools;
-use itertools::Itertools;
-
 use crate::canvas::Canvas;
 use crate::channel_router::{ChannelLayout, ChannelState};
 use crate::gate::*;
-use crate::loader::{YosysJsonCell, YosysJsonPortDirection};
+use crate::loader::YosysJsonCell;
 
 use serde_json::Value;
 use std::convert::TryFrom;
@@ -228,20 +225,41 @@ impl TryFrom<&YosysJsonCell> for Circuit {
         for i in cell.connections.iter() {
             assert!(i.1.len() == 1);
         }
-        let inputs: Vec<_> = cell
-            .connections
+
+        let basic_circuit = BasicCircuitYada::try_from(&*cell.cell_type)?;
+
+        // Check we only have 1 bit inputs.
+        if cell.connections.iter().any(|(_, e)| e.len() != 1) {
+            panic!(
+                "Not all circuit connections on {:?} are only 1 bit wide!",
+                cell.cell_type
+            );
+        }
+
+        let inputs: Vec<Port> = basic_circuit
+            .input_names()
             .iter()
-            .filter(|(k, _)| cell.port_directions[*k] == YosysJsonPortDirection::Input)
-            .sorted_by(|(k0, _), (k1, _)| k0.cmp(k1))
-            .map(|(_, v)| Port::from(&v[0]))
+            .map(|k| {
+                cell.connections
+                    .get(&**k)
+                    .map(|e| Port::from(&e[0]))
+                    .unwrap_or_else(|| panic!("Input {} missing for cell {}", k, cell.cell_type))
+            })
+            .collect();
+        let outputs: Vec<Port> = basic_circuit
+            .output_names()
+            .iter()
+            .map(|k| {
+                cell.connections
+                    .get(&**k)
+                    .map(|e| Port::from(&e[0]))
+                    .unwrap_or_else(|| panic!("Output {} missing for cell {}", k, cell.cell_type))
+            })
             .collect();
 
-        let outputs: Vec<_> = cell
-            .connections
-            .iter()
-            .filter(|(k, _)| cell.port_directions[*k] == YosysJsonPortDirection::Output)
-            .map(|(_, v)| Port::from(&v[0]))
-            .collect();
+        if inputs.len() + outputs.len() != cell.connections.len() {
+            panic!("Missed some connections on {:?}", cell);
+        }
 
         Ok(Self {
             basic_circuit: BasicCircuitYada::try_from(&*cell.cell_type).unwrap(),

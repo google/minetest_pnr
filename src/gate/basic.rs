@@ -57,12 +57,20 @@ macro_rules! TrivialGate {
                 true
             }
 
+            fn input_names(&self) -> &[&str] {
+                &["A", "B"]
+            }
+
             fn input_y_offset(&self, idx: usize) -> usize {
                 match idx {
                     0 => 0,
                     1 => 2,
                     _ => unreachable!(),
                 }
+            }
+
+            fn output_names(&self) -> &[&str] {
+                &["Y"]
             }
 
             fn output_y_offset(&self, idx: usize) -> usize {
@@ -75,15 +83,15 @@ macro_rules! TrivialGate {
     };
 }
 
-TrivialGate!(AndGate, "$_AND_", MeseconsGate::And, false);
-TrivialGate!(OrGate, "$_OR_", MeseconsGate::Or, false);
-TrivialGate!(XorGate, "$_XOR_", MeseconsGate::Xor, false);
-TrivialGate!(NandGate, "$_NAND_", MeseconsGate::Nand, false);
-TrivialGate!(NorGate, "$_NOR_", MeseconsGate::Nor, false);
+TrivialGate!(AndGate, "AND", MeseconsGate::And, false);
+TrivialGate!(OrGate, "OR", MeseconsGate::Or, false);
+TrivialGate!(XorGate, "XOR", MeseconsGate::Xor, false);
+TrivialGate!(NandGate, "NAND", MeseconsGate::Nand, false);
+TrivialGate!(NorGate, "NOR", MeseconsGate::Nor, false);
 
-//TrivialGate!(NandGate, "$_NAND_", MeseconsGate::AND, true);
-//TrivialGate!(NorGate, "$_NOR_", MeseconsGate::OR, true);
-TrivialGate!(XnorGate, "$_XNOR_", MeseconsGate::Xor, true);
+//TrivialGate!(NandGate, "NAND", MeseconsGate::AND, true);
+//TrivialGate!(NorGate, "NOR", MeseconsGate::OR, true);
+TrivialGate!(XnorGate, "XNOR", MeseconsGate::Xor, true);
 
 macro_rules! SingleFieldGate {
     ($gatename:ident, $yosys_id:literal, $field:expr, $has_input:literal) => {
@@ -109,6 +117,10 @@ macro_rules! SingleFieldGate {
                 true
             }
 
+            fn input_names(&self) -> &[&str] {
+                &["A"]
+            }
+
             fn input_y_offset(&self, idx: usize) -> usize {
                 if $has_input {
                     match idx {
@@ -118,6 +130,10 @@ macro_rules! SingleFieldGate {
                 } else {
                     unreachable!();
                 }
+            }
+
+            fn output_names(&self) -> &[&str] {
+                &["Y"]
             }
 
             fn output_y_offset(&self, idx: usize) -> usize {
@@ -130,7 +146,8 @@ macro_rules! SingleFieldGate {
     };
 }
 
-SingleFieldGate!(NotGate, "$_NOT_", Gate(MeseconsGate::Not), true);
+SingleFieldGate!(BufGate, "BUF", Gate(MeseconsGate::Forward), true);
+SingleFieldGate!(NotGate, "NOT", Gate(MeseconsGate::Not), true);
 SingleFieldGate!(InputGate, "INVALID", Gate(MeseconsGate::Input), false);
 SingleFieldGate!(OutputGate, "INVALID", Gate(MeseconsGate::Output), true);
 SingleFieldGate!(ForwardGate, "INVALID", Gate(MeseconsGate::Forward), true);
@@ -166,12 +183,20 @@ macro_rules! SthNotGate {
                 false
             }
 
+            fn input_names(&self) -> &[&str] {
+                &["A", "B"]
+            }
+
             fn input_y_offset(&self, idx: usize) -> usize {
                 match idx {
                     0 => 0,
                     1 => 2,
                     _ => unreachable!(),
                 }
+            }
+
+            fn output_names(&self) -> &[&str] {
+                &["Y"]
             }
 
             fn output_y_offset(&self, idx: usize) -> usize {
@@ -183,5 +208,6 @@ macro_rules! SthNotGate {
         }
     };
 }
-SthNotGate!(AndNotGate, "$_ANDNOT_", MeseconsGate::And);
-SthNotGate!(OrNotGate, "$_ORNOT_", MeseconsGate::Or);
+
+SthNotGate!(AndNotGate, "ANDNOT", MeseconsGate::And);
+SthNotGate!(OrNotGate, "ORNOT", MeseconsGate::Or);

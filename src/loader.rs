@@ -37,7 +37,6 @@ pub struct YosysJsonCell {
     pub cell_type: String,
     parameters: Value, // can be ignored
     attributes: Value, // can be ignored
-    pub port_directions: std::collections::HashMap<String, YosysJsonPortDirection>,
     pub connections: std::collections::HashMap<String, Vec<Value>>,
 }
 

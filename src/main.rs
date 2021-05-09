@@ -122,7 +122,7 @@ fn parse_json(filepath: &str) -> std::io::Result<Vec<Vec<Circuit>>> {
     let mut circuits: Vec<_> = m
         .cells
         .values()
-        .map(|v| Circuit::try_from(v).unwrap())
+        .map(|v| Circuit::try_from(v).unwrap_or_else(|_| panic!("Could not convert {:?}", v)))
         .collect();
 
     // Add input connections.

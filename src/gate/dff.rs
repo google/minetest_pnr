@@ -19,7 +19,7 @@ pub struct DffP;
 
 impl BasicCircuitDetails for DffP {
     fn yosys_id(&self) -> &str {
-        "$_DFF_P_"
+        "DFF"
     }
 
     fn get_layout(&self) -> &[BlockType] {
@@ -88,12 +88,20 @@ impl BasicCircuitDetails for DffP {
         false
     }
 
+    fn input_names(&self) -> &[&str] {
+        &["C", "D"]
+    }
+
     fn input_y_offset(&self, idx: usize) -> usize {
         match idx {
             0 => 0,
             1 => 2,
             _ => unreachable!(),
         }
+    }
+
+    fn output_names(&self) -> &[&str] {
+        &["Q"]
     }
 
     fn output_y_offset(&self, idx: usize) -> usize {

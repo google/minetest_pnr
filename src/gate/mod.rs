@@ -38,6 +38,7 @@ pub enum BasicCircuitYada {
     InputGate(InputGate),
     OutputGate(OutputGate),
     ForwardGate(ForwardGate),
+    BufGate(BufGate),
 
     DffP(DffP),
 }
@@ -74,6 +75,7 @@ impl BasicCircuitYada {
             BasicCircuitYada::InputGate(ref x) => x,
             BasicCircuitYada::OutputGate(ref x) => x,
             BasicCircuitYada::ForwardGate(ref x) => x,
+            BasicCircuitYada::BufGate(ref x) => x,
 
             BasicCircuitYada::DffP(ref x) => x,
         }
@@ -95,6 +97,8 @@ impl TryFrom<&str> for BasicCircuitYada {
             Self::Xnor(XnorGate),
             Self::Xor(XorGate),
             Self::DffP(DffP),
+
+            Self::BufGate(BufGate),
         ];
 
         for gate in gates {
@@ -119,12 +123,17 @@ impl BasicCircuitDetails for BasicCircuitYada {
     fn height(&self) -> usize {
         self.inner().height()
     }
-
     fn can_swap_input(&self) -> bool {
         self.inner().can_swap_input()
     }
+    fn input_names(&self) -> &[&str] {
+        self.inner().input_names()
+    }
     fn input_y_offset(&self, idx: usize) -> usize {
         self.inner().input_y_offset(idx)
+    }
+    fn output_names(&self) -> &[&str] {
+        self.inner().output_names()
     }
     fn output_y_offset(&self, idx: usize) -> usize {
         self.inner().output_y_offset(idx)
@@ -137,7 +146,10 @@ pub trait BasicCircuitDetails {
     fn width(&self) -> usize;
     fn height(&self) -> usize;
 
-    fn can_swap_input(&self) -> bool;
+    fn input_names(&self) -> &[&str];
     fn input_y_offset(&self, idx: usize) -> usize;
+    fn can_swap_input(&self) -> bool;
+
+    fn output_names(&self) -> &[&str];
     fn output_y_offset(&self, idx: usize) -> usize;
 }
